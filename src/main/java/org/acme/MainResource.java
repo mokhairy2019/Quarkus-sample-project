@@ -1,32 +1,36 @@
 package org.acme;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+
 import com.couchbase.client.java.json.*;
 
+import io.quarkus.logging.Log;
+import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.inject.Named;
 
 
 @Path("/hello")
 @ApplicationScoped  
 public class MainResource {
 
+
     private DbInterface dbInterface;
-    private static Integer key = 0;
+
 
     @Inject
-    public MainResource(DbInterface dbInterface) {
-        this.dbInterface = dbInterface;
+    public MainResource(@ConfigProperty(name = "db.type") String dbType) {
+        Log.info("MainResource constructor" + dbType);
+        this.dbInterface = DbFactory.getDbInterface(dbType);
     }
 
     
     @GET
     @Produces(MediaType.TEXT_PLAIN)
-    public void hello() {
-        key++;
-        dbInterface.store( Integer.toString(key) , JsonObject.create().put("name", "mike"));
+    public String hello() {
+       return dbInterface.greet();
     }
 }
